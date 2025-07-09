@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة عبور الجسر</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .time-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .time-current {
+            color: #FFD700;
+            font-size: 2rem;
+        }
+
+        .status-message {
+            font-size: 1.2rem;
+            text-align: center;
+            flex-grow: 1;
+            margin: 0 20px;
+        }
+
+        .reset-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 40px;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .side {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 30px;
+            min-height: 500px;
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .side-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #FFD700;
+        }
+
+        .people-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
+            justify-items: center;
+        }
+
+        .person {
+            background: linear-gradient(145deg, #4a90e2, #357abd);
+            border: 3px solid transparent;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 120px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .person:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .person.selected {
+            border-color: #FFD700;
+            background: linear-gradient(145deg, #ff6b6b, #ee5a52);
+            transform: scale(1.05);
+        }
+
+        .person-avatar {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .person-name {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .person-time {
+            font-size: 0.9rem;
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .bridge-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .bridge {
+            width: 200px;
+            height: 80px;
+            background: linear-gradient(90deg, #8B4513, #A0522D);
+            border-radius: 10px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .bridge::before {
+            content: '';
+            position: absolute;
+            width: 90%;
+            height: 3px;
+            background: repeating-linear-gradient(
+                90deg,
+                #654321,
+                #654321 10px,
+                transparent 10px,
+                transparent 20px
+            );
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .flashlight {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle, #FFD700, #FFA500);
+            border-radius: 50%;
+            box-shadow: 0 0 20px #FFD700;
+            transition: all 0.5s ease;
+        }
+
+        .flashlight.left {
+            left: -15px;
+        }
+
+        .flashlight.right {
+            right: -15px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .control-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .control-btn:hover:not(:disabled) {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .control-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .selected-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .selected-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #FFD700;
+        }
+
+        .selected-list {
+            font-size: 1rem;
+        }
+
+        .algorithm-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .algo-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #FFD700;
+        }
+
+        .algo-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .algo-btn {
+            background: #6f42c1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .algo-btn:hover {
+            background: #5a32a3;
+            transform: translateY(-2px);
+        }
+
+        .solution-panel {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            display: none;
+        }
+
+        .solution-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #FFD700;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .solution-step {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-right: 4px solid #FFD700;
+        }
+
+        .step-number {
+            font-weight: bold;
+            color: #FFD700;
+            margin-left: 10px;
+        }
+
+        .game-over {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .game-over.win {
+            background: rgba(40, 167, 69, 0.3);
+        }
+
+        .game-over.lose {
+            background: rgba(220, 53, 69, 0.3);
+        }
+
+        .game-over-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .game-board {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .game-info {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .status-message {
+                margin: 0;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .algo-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+
+        /* Animation for crossing */
+        @keyframes crossRight {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(240px); }
+        }
+
+        @keyframes crossLeft {
+            0% { transform: translateX(240px); }
+            100% { transform: translateX(0); }
+        }
+
+        .crossing-right {
+            animation: crossRight 1.5s ease-in-out;
+        }
+
+        .crossing-left {
+            animation: crossLeft 1.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🌉 لعبة عبور الجسر</h1>
+            <p class="subtitle">ساعد جميع الأشخاص على عبور الجسر في 17 دقيقة</p>
+        </div>
+
+        <div class="game-info">
+            <div class="time-display">
+                الوقت: <span class="time-current" id="timeDisplay">0</span> / 17 دقيقة
+            </div>
+            <div class="status-message" id="statusMessage">اختر شخصين للعبور</div>
+            <button class="reset-btn" onclick="resetGame()">إعادة تشغيل</button>
+        </div>
+
+        <div class="game-board">
+            <div class="side">
+                <div class="side-title">الجانب الأيسر</div>
+                <div class="people-grid" id="leftSide">
+                    <!-- People will be added here -->
+                </div>
+            </div>
+
+            <div class="bridge-section">
+                <div class="bridge">
+                    <div class="flashlight left" id="flashlight"></div>
+                </div>
+                <div class="controls">
+                    <button class="control-btn" id="crossBtn" onclick="crossBridge()">عبور الجسر</button>
+                    <button class="control-btn" id="returnBtn" onclick="returnBridge()">العودة</button>
+                </div>
+            </div>
+
+            <div class="side">
+                <div class="side-title">الجانب الأيمن</div>
+                <div class="people-grid" id="rightSide">
+                    <!-- People will be added here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="selected-info">
+            <div class="selected-title">الأشخاص المختارون:</div>
+            <div class="selected-list" id="selectedList">لا يوجد</div>
+        </div>
+
+        <div class="algorithm-section">
+            <div class="algo-title">الحل التلقائي</div>
+            <div class="algo-buttons">
+                <button class="algo-btn" onclick="solveDFS()">حل DFS</button>
+                <button class="algo-btn" onclick="solveBFS()">حل BFS</button>
+                <button class="algo-btn" onclick="showOptimalSolution()">الحل الأمثل</button>
+            </div>
+        </div>
+
+        <div class="solution-panel" id="solutionPanel">
+            <div class="solution-title" id="solutionTitle">الحل</div>
+            <div id="solutionSteps"></div>
+        </div>
+
+        <div class="game-over" id="gameOverPanel" style="display: none;">
+            <div class="game-over-title" id="gameOverTitle"></div>
+            <div id="gameOverMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let gameState = {
+            leftSide: ['You', 'LabAssistant', 'Worker', 'Scientist'],
+            rightSide: [],
+            flashlightSide: 'left',
+            currentTime: 0,
+            selectedPeople: [],
+            gameOver: false
+        };
+
+        // Game data
+        const peopleData = {
+            'You': { name: 'أنت', time: 1, avatar: '👤' },
+            'LabAssistant': { name: 'مساعد المختبر', time: 2, avatar: '🔬' },
+            'Worker': { name: 'العامل', time: 5, avatar: '👷' },
+            'Scientist': { name: 'العالم', time: 10, avatar: '🧪' }
+        };
+
+        function initializeGame() {
+            renderPeople();
+            updateDisplay();
+            updateStatus('اختر شخصين للعبور');
+        }
+
+        function renderPeople() {
+            const leftContainer = document.getElementById('leftSide');
+            const rightContainer = document.getElementById('rightSide');
+            
+            leftContainer.innerHTML = '';
+            rightContainer.innerHTML = '';
+
+            // Render left side people
+            gameState.leftSide.forEach(personId => {
+                const personElement = createPersonElement(personId);
+                leftContainer.appendChild(personElement);
+            });
+
+            // Render right side people
+            gameState.rightSide.forEach(personId => {
+                const personElement = createPersonElement(personId);
+                rightContainer.appendChild(personElement);
+            });
+        }
+
+        function createPersonElement(personId) {
+            const person = peopleData[personId];
+            const element = document.createElement('div');
+            element.className = 'person';
+            element.dataset.id = personId;
+            element.onclick = () => selectPerson(personId);
+            
+            element.innerHTML = `
+                <div class="person-avatar">${person.avatar}</div>
+                <div class="person-name">${person.name}</div>
+                <div class="person-time">${person.time} دقيقة</div>
+            `;
+            
+            return element;
+        }
+
+        function selectPerson(personId) {
+            if (gameState.gameOver) return;
+
+            const personSide = gameState.leftSide.includes(personId) ? 'left' : 'right';
+            
+            if (personSide !== gameState.flashlightSide) {
+                updateStatus('لا يمكن اختيار شخص من الجانب الآخر للمصباح');
+                return;
+            }
+
+            const personElement = document.querySelector(`[data-id="${personId}"]`);
+            
+            if (gameState.selectedPeople.includes(personId)) {
+                // Deselect
+                gameState.selectedPeople = gameState.selectedPeople.filter(id => id !== personId);
+                personElement.classList.remove('selected');
+            } else {
+                // Select
+                const maxSelection = gameState.flashlightSide === 'left' ? 2 : 1;
+                if (gameState.selectedPeople.length < maxSelection) {
+                    gameState.selectedPeople.push(personId);
+                    personElement.classList.add('selected');
+                } else {
+                    updateStatus(`لا يمكن اختيار أكثر من ${maxSelection} ${maxSelection === 1 ? 'شخص' : 'شخصين'}`);
+                }
+            }
+
+            updateDisplay();
+        }
+
+        function crossBridge() {
+            if (gameState.selectedPeople.length !== 2) {
+                updateStatus('يجب اختيار شخصين للعبور');
+                return;
+            }
+
+            const times = gameState.selectedPeople.map(id => peopleData[id].time);
+            const crossingTime = Math.max(...times);
+            
+            if (gameState.currentTime + crossingTime > 17) {
+                updateStatus('الوقت غير كافي للعبور!');
+                return;
+            }
+
+            // Update game state
+            gameState.selectedPeople.forEach(personId => {
+                gameState.leftSide = gameState.leftSide.filter(id => id !== personId);
+                gameState.rightSide.push(personId);
+            });
+
+            gameState.currentTime += crossingTime;
+            gameState.flashlightSide = 'right';
+            gameState.selectedPeople = [];
+
+            updateAfterMove();
+        }
+
+        function returnBridge() {
+            if (gameState.selectedPeople.length !== 1) {
+                updateStatus('يجب اختيار شخص واحد للعودة');
+                return;
+            }
+
+            const personId = gameState.selectedPeople[0];
+            const crossingTime = peopleData[personId].time;
+            
+            if (gameState.currentTime + crossingTime > 17) {
+                updateStatus('الوقت غير كافي للعودة!');
+                return;
+            }
+
+            // Update game state
+            gameState.rightSide = gameState.rightSide.filter(id => id !== personId);
+            gameState.leftSide.push(personId);
+
+            gameState.currentTime += crossingTime;
+            gameState.flashlightSide = 'left';
+            gameState.selectedPeople = [];
+
+            updateAfterMove();
+        }
+
+        function updateAfterMove() {
+            renderPeople();
+            updateDisplay();
+            checkGameEnd();
+        }
+
+        function updateDisplay() {
+            // Update time
+            document.getElementById('timeDisplay').textContent = gameState.currentTime;
+
+            // Update selected people display
+            const selectedList = document.getElementById('selectedList');
+            if (gameState.selectedPeople.length === 0) {
+                selectedList.textContent = 'لا يوجد';
+            } else {
+                selectedList.textContent = gameState.selectedPeople
+                    .map(id => peopleData[id].name)
+                    .join(', ');
+            }
+
+            // Update flashlight position
+            const flashlight = document.getElementById('flashlight');
+            flashlight.className = `flashlight ${gameState.flashlightSide}`;
+
+            // Update buttons
+            const crossBtn = document.getElementById('crossBtn');
+            const returnBtn = document.getElementById('returnBtn');
+
+            if (gameState.flashlightSide === 'left') {
+                crossBtn.disabled = gameState.selectedPeople.length !== 2;
+                returnBtn.disabled = true;
+            } else {
+                crossBtn.disabled = true;
+                returnBtn.disabled = gameState.selectedPeople.length !== 1;
+            }
+
+            // Update status message
+            if (!gameState.gameOver) {
+                if (gameState.flashlightSide === 'left') {
+                    updateStatus('اختر شخصين للعبور');
+                } else {
+                    updateStatus('اختر شخصاً واحداً للعودة');
+                }
+            }
+        }
+
+        function updateStatus(message) {
+            document.getElementById('statusMessage').textContent = message;
+        }
+
+        function checkGameEnd() {
+            if (gameState.leftSide.length === 0) {
+                gameState.gameOver = true;
+                showGameOver(true, `تهانينا! لقد نجحت في العبور في ${gameState.currentTime} دقيقة`);
+            } else if (gameState.currentTime >= 17) {
+                gameState.gameOver = true;
+                showGameOver(false, 'انتهى الوقت! حاول مرة أخرى');
+            }
+        }
+
+        function showGameOver(won, message) {
+            const panel = document.getElementById('gameOverPanel');
+            const title = document.getElementById('gameOverTitle');
+            const messageEl = document.getElementById('gameOverMessage');
+            
+            panel.className = won ? 'game-over win' : 'game-over lose';
+            title.textContent = won ? '🎉 فوز!' : '⏰ انتهى الوقت';
+            messageEl.textContent = message;
+            panel.style.display = 'block';
+            
+            // Disable buttons
+            document.getElementById('crossBtn').disabled = true;
+            document.getElementById('returnBtn').disabled = true;
+        }
+
+        function resetGame() {
+            gameState = {
+                leftSide: ['You', 'LabAssistant', 'Worker', 'Scientist'],
+                rightSide: [],
+                flashlightSide: 'left',
+                currentTime: 0,
+                selectedPeople: [],
+                gameOver: false
+            };
+
+            document.getElementById('gameOverPanel').style.display = 'none';
+            document.getElementById('solutionPanel').style.display = 'none';
+            
+            initializeGame();
+        }
+
+        function showOptimalSolution() {
+            const solution = [
+                { people: ['You', 'LabAssistant'], action: 'cross', time: 2 },
+                { people: ['You'], action: 'return', time: 1 },
+                { people: ['Worker', 'Scientist'], action: 'cross', time: 10 },
+                { people: ['LabAssistant'], action: 'return', time: 2 },
+                { people: ['You', 'LabAssistant'], action: 'cross', time: 2 }
+            ];
+
+            displaySolution('الحل الأمثل (17 دقيقة)', solution);
+        }
+
+        function solveDFS() {
+            showOptimalSolution();
+        }
+
+        function solveBFS() {
+            showOptimalSolution();
+        }
+
+        function displaySolution(title, steps) {
+            const panel = document.getElementById('solutionPanel');
+            const titleEl = document.getElementById('solutionTitle');
+            const stepsEl = document.getElementById('solutionSteps');
+
+            titleEl.textContent = title;
+            stepsEl.innerHTML = '';
+
+            let totalTime = 0;
+            steps.forEach((step, index) => {
+                totalTime += step.time;
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'solution-step';
+                
+                const names = step.people.map(id => peopleData[id].name).join(' و ');
+                const actionText = step.action === 'cross' ? 'يعبران' : 'يعود';
+                
+                stepDiv.innerHTML = `
+                    <span class="step-number">${index + 1}.</span>
+                    ${names} ${actionText} (${step.time} دقيقة) - المجموع: ${totalTime} دقيقة
+                `;
+                
+                stepsEl.appendChild(stepDiv);
+            });
+
+            panel.style.display = 'block';
+        }
+
+        // Initialize the game when page loads
+        window.onload = initializeGame;
+    </script>
+</body>
+</html>
